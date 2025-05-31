@@ -1,12 +1,11 @@
-require("@nomiclabs/hardhat-ethers");
-require("@nomiclabs/hardhat-waffle");
+require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
 module.exports = {
   solidity: "0.8.20",
   networks: {
-    graphiteTestnet: {
-      url: process.env.GRAPHITE_TESTNET_URL || "https://testnet.atgraphite.com",
+    graphiteMainnet: {
+      url: "https://mainnet.atgraphite.com", // Replace with actual RPC URL
       accounts: [process.env.PRIVATE_KEY],
     },
   },

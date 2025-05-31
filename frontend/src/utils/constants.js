@@ -1,9 +1,9 @@
-export const LENDING_POOL_ADDRESS = "0xYourDeployedLendingPoolAddress"; // Update after deployment
-export const USDG_ADDRESS = "0xYourDeployedUSDGAddress"; // Update after deployment
-export const KYC_CONTRACT_ADDRESS = "0xGraphiteKYCContractAddress"; // From Graphite testnet
-export const REPUTATION_CONTRACT_ADDRESS = "0xGraphiteReputationContractAddress"; // From Graphite testnet
+export const LENDING_POOL_ADDRESS = "0xYourDeployedLendingPoolAddress"; // From Hardhat deployment
+export const USDG_ADDRESS = "0xGraphiteMainnetUSDGAddress"; // From Graphite docs/support
+export const KYC_CONTRACT_ADDRESS = "0xGraphiteMainnetKYCContractAddress"; // From Graphite docs/support
+export const REPUTATION_CONTRACT_ADDRESS = "0xGraphiteMainnetReputationContractAddress"; // From Graphite docs/support
+
 export const LENDING_POOL_ABI = [
-  // Paste ABI from artifacts/contracts/LendingPool.sol/LendingPool.json after compilation
   {
     "inputs": [
       { "internalType": "address", "name": "_usdGToken", "type": "address" },
@@ -95,7 +95,7 @@ export const LENDING_POOL_ABI = [
     "inputs": [],
     "name": "repay",
     "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -117,6 +117,41 @@ export const LENDING_POOL_ABI = [
     "name": "withdraw",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
+
+export const KYC_CONTRACT_ABI = [
+  // Replace with actual ABI from Graphite
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "level", "type": "uint256" },
+      { "internalType": "bytes", "name": "data", "type": "bytes" }
+    ],
+    "name": "createKYCRequest",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "index", "type": "uint256" }],
+    "name": "viewMyRequest",
+    "outputs": [
+      { "internalType": "uint256", "name": "level", "type": "uint256" },
+      { "internalType": "uint256", "name": "status", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
+
+export const REPUTATION_CONTRACT_ABI = [
+  // Replace with actual ABI from Graphite
+  {
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
+    "name": "getTrustScore",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
     "type": "function"
   }
 ];
