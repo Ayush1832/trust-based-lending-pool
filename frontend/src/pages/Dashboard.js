@@ -1,85 +1,120 @@
 import React, { useState, useEffect } from "react";
-import { ethers } from "ethers";
-import { LENDING_POOL_ADDRESS, LENDING_POOL_ABI, KYC_CONTRACT_ADDRESS, KYC_CONTRACT_ABI, REPUTATION_CONTRACT_ADDRESS, REPUTATION_CONTRACT_ABI } from "../utils/constants";
+import { initWeb3, getKycLevel, requestKycLevel, checkKycRequestStatus, getLastKycRequestIndex } from "../utils/web3";
+import { LENDING_POOL_ADDRESS, LENDING_POOL_ABI } from "../utils/constants";
 
-const Dashboard = ({ account }) => {
-  const [trustScore, setTrustScore] = useState(null);
+const Dashboard = () => {
+  const [web3, setWeb3] = useState(null);
+  const [account, setAccount] = useState("");
+  const [lendingPool, setLendingPool] = useState(null);
   const [kycLevel, setKycLevel] = useState(null);
-  const [depositBalance, setDepositBalance] = useState("0");
-  const [loanBalance, setLoanBalance] = useState("0");
+  const [depositAmount, setDepositAmount] = useState("");
+  const [borrowAmount, setBorrowAmount] = useState("");
+  const [kycRequestStatus, setKycRequestStatus] = useState(null);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (account) {
-        try {
-          const provider = new ethers.BrowserProvider(window.ethereum);
-          const reputationContract = new ethers.Contract(REPUTATION_CONTRACT_ADDRESS, REPUTATION_CONTRACT_ABI, provider);
-          const kycContract = new ethers.Contract(KYC_CONTRACT_ADDRESS, KYC_CONTRACT_ABI, provider);
-          const lendingPoolContract = new ethers.Contract(LENDING_POOL_ADDRESS, LENDING_POOL_ABI, provider);
-
-          const trustScore = await reputationContract.getTrustScore(account);
-          setTrustScore(trustScore.toString());
-
-          const [level] = await kycContract.viewMyRequest(0).catch(() => [null]);
-          setKycLevel(level?.toString() || null);
-
-          const deposit = await lendingPoolContract.deposits(account);
-          setDepositBalance(ethers.formatUnits(deposit, 18));
-          const loan = await lendingPoolContract.loans(account);
-          setLoanBalance(ethers.formatUnits(loan, 18));
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    };
-    fetchData();
-  }, [account]);
-
-  const initiateKYC = async () => {
+  const connectWallet = async () => {
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const kycContract = new ethers.Contract(KYC_CONTRACT_ADDRESS, KYC_CONTRACT_ABI, signer);
-      const tx = await kycContract.createKYCRequest(1, "0x");
-      await tx.wait();
-      const [level] = await kycContract.viewMyRequest(0);
-      setKycLevel(level.toString());
-      alert("KYC request initiated");
+      setError("");
+      const web3Instance = await initWeb3();
+      setWeb3(web3Instance);
+
+      const account = await window.graphite.getAddress();
+      setAccount(account);
+
+      const poolContract = new web3Instance.eth.Contract(LENDING_POOL_ABI, LENDING_POOL_ADDRESS);
+      setLendingPool(poolContract);
+
+      const level = await getKycLevel(web3Instance);
+      setKycLevel(level);
+
+      const lastIndex = await getLastKycRequestIndex(web3Instance, account);
+      if (lastIndex >= 0) {
+        const status = await checkKycRequestStatus(web3Instance, lastIndex);
+        setKycRequestStatus(status);
+      }
     } catch (error) {
-      console.error(error);
+      setError(error.message);
+      console.error("Connection failed:", error);
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!lendingPool || !account || kycLevel < 1) {
+      setError("Connect Graphite Wallet, complete KYC (level 1+), and try again.");
+      return;
+    }
+    try {
+      await lendingPool.methods.deposit(web3.utils.toWei(depositAmount, "ether")).send({ from: account });
+      alert("Deposit successful!");
+    } catch (error) {
+      setError("Deposit failed: " + error.message);
+    }
+  };
+
+  const handleBorrow = async () => {
+    if (!lendingPool || !account || kycLevel < 1) {
+      setError("Connect Graphite Wallet, complete KYC (level 1+), and try again.");
+      return;
+    }
+    try {
+      await lendingPool.methods.borrow(web3.utils.toWei(borrowAmount, "ether")).send({ from: account });
+      alert("Borrow successful!");
+    } catch (error) {
+      setError("Borrow failed: " + error.message);
+    }
+  };
+
+  const handleRequestKyc = async () => {
+    if (!web3 || !account) {
+      setError("Connect Graphite Wallet first.");
+      return;
+    }
+    try {
+      const hash = await requestKycLevel(web3, 1);
+      alert(`KYC request submitted. Tx hash: ${hash}`);
+    } catch (error) {
+      setError("KYC request failed: " + error.message);
     }
   };
 
   return (
-    <div className="p-8 min-h-screen">
-      <h2 className="text-3xl font-bold text-neon-blue mb-6">Dashboard</h2>
+    <div>
+      <h1>Trust-Based Lending Pool</h1>
       {!account ? (
-        <p className="text-center text-neon-green">Please connect your wallet to view your dashboard.</p>
+        <button onClick={connectWallet}>Connect Graphite Wallet</button>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-dark-card p-6 rounded-lg shadow-lg">
-            <p className="text-neon-blue">Trust Score</p>
-            <p className="text-2xl">{trustScore || "N/A"}</p>
-          </div>
-          <div className="bg-dark-card p-6 rounded-lg shadow-lg">
-            <p className="text-neon-blue">KYC Level</p>
-            <p className="text-2xl">{kycLevel || "Not Verified"}</p>
-            {!kycLevel && (
-              <button onClick={initiateKYC} className="mt-4 bg-neon-green text-dark-bg px-4 py-2 rounded hover:bg-neon-blue transition-colors">
-                Initiate KYC
-              </button>
-            )}
-          </div>
-          <div className="bg-dark-card p-6 rounded-lg shadow-lg">
-            <p className="text-neon-blue">Deposit Balance</p>
-            <p className="text-2xl">{depositBalance} USD@G</p>
-          </div>
-          <div className="bg-dark-card p-6 rounded-lg shadow-lg">
-            <p className="text-neon-blue">Loan Balance</p>
-            <p className="text-2xl">{loanBalance} USD@G</p>
-          </div>
-        </div>
+        <p>Account: {account}</p>
       )}
+      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+      <p>KYC Level: {kycLevel || "Unknown"}</p>
+      <p>KYC Request Status: {kycRequestStatus ? `Status: ${kycRequestStatus.status}` : "No requests"}</p>
+
+      <div>
+        <h2>Request KYC</h2>
+        <button onClick={handleRequestKyc}>Request KYC Level 1</button>
+      </div>
+
+      <div>
+        <h2>Deposit</h2>
+        <input
+          type="text"
+          value={depositAmount}
+          onChange={(e) => setDepositAmount(e.target.value)}
+          placeholder="Amount in USD@G"
+        />
+        <button onClick={handleDeposit}>Deposit</button>
+      </div>
+
+      <div>
+        <h2>Borrow</h2>
+        <input
+          type="text"
+          value={borrowAmount}
+          onChange={(e) => setBorrowAmount(e.target.value)}
+          placeholder="Amount in USD@G"
+        />
+        <button onClick={handleBorrow}>Borrow</button>
+      </div>
     </div>
   );
 };

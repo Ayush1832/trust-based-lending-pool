@@ -8,9 +8,14 @@ const Deposit = ({ account, setError }) => {
 
   const deposit = async () => {
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      if (!window.graphite) throw new Error("MetaMask not detected");
+      const provider = new ethers.BrowserProvider(window.graphite);
       const signer = await provider.getSigner();
-      const contract = new ethers.Contract(LENDING_POOL_ADDRESS, LENDING_POOL_ABI, signer);
+      const contract = new ethers.Contract(
+        LENDING_POOL_ADDRESS,
+        LENDING_POOL_ABI,
+        signer
+      );
       const tx = await contract.deposit(ethers.parseUnits(amount, 18));
       await tx.wait();
       alert("Deposit successful");

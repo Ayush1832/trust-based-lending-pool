@@ -1,14 +1,12 @@
-export const LENDING_POOL_ADDRESS = "0xYourDeployedLendingPoolAddress"; // From Hardhat deployment
-export const USDG_ADDRESS = "0xGraphiteMainnetUSDGAddress"; // From Graphite docs/support
-export const KYC_CONTRACT_ADDRESS = "0xGraphiteMainnetKYCContractAddress"; // From Graphite docs/support
-export const REPUTATION_CONTRACT_ADDRESS = "0xGraphiteMainnetReputationContractAddress"; // From Graphite docs/support
+export const LENDING_POOL_ADDRESS = "0xYourDeployedLendingPoolAddress"; // Replace after deployment
+export const USDG_ADDRESS = "0xDcE5E14F2A607C049C8948b05AD561C2Ff46D407"; // From mockUSDGAddress.json
+export const KYC_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000001001";
 
 export const LENDING_POOL_ABI = [
   {
     "inputs": [
       { "internalType": "address", "name": "_usdGToken", "type": "address" },
-      { "internalType": "address", "name": "_kycContract", "type": "address" },
-      { "internalType": "address", "name": "_reputationContract", "type": "address" }
+      { "internalType": "address", "name": "_kycContract", "type": "address" }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
@@ -50,44 +48,53 @@ export const LENDING_POOL_ABI = [
     "type": "event"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }],
+    "inputs": [
+      { "internalType": "uint256", "name": "amount", "type": "uint256" }
+    ],
     "name": "borrow",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
     "name": "collateral",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }],
+    "inputs": [
+      { "internalType": "uint256", "name": "amount", "type": "uint256" }
+    ],
     "name": "deposit",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
     "name": "deposits",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "kycContract",
-    "outputs": [{ "internalType": "contract IKYCContract", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
     "name": "loans",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -95,25 +102,22 @@ export const LENDING_POOL_ABI = [
     "inputs": [],
     "name": "repay",
     "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "reputationContract",
-    "outputs": [{ "internalType": "contract IReputationContract", "name": "", "type": "address" }],
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "usdGToken",
-    "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }],
+    "outputs": [
+      { "internalType": "contract IERC20", "name": "", "type": "address" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }],
+    "inputs": [
+      { "internalType": "uint256", "name": "amount", "type": "uint256" }
+    ],
     "name": "withdraw",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -122,36 +126,41 @@ export const LENDING_POOL_ABI = [
 ];
 
 export const KYC_CONTRACT_ABI = [
-  // Replace with actual ABI from Graphite
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "level", "type": "uint256" },
-      { "internalType": "bytes", "name": "data", "type": "bytes" }
-    ],
     "name": "createKYCRequest",
+    "type": "function",
+    "inputs": [
+      { "name": "_level", "type": "uint256" },
+      { "name": "_data", "type": "bytes32" }
+    ],
     "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    "stateMutability": "payable"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "index", "type": "uint256" }],
     "name": "viewMyRequest",
+    "type": "function",
+    "inputs": [{ "name": "_senderKYCIndex", "type": "uint256" }],
     "outputs": [
-      { "internalType": "uint256", "name": "level", "type": "uint256" },
-      { "internalType": "uint256", "name": "status", "type": "uint256" }
+      { "name": "user", "type": "address" },
+      { "name": "level", "type": "uint256" },
+      { "name": "status", "type": "uint256" },
+      { "name": "centre", "type": "address" },
+      { "name": "deposit", "type": "uint256" }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  }
-];
-
-export const REPUTATION_CONTRACT_ABI = [
-  // Replace with actual ABI from Graphite
+    "stateMutability": "view"
+  },
   {
-    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
-    "name": "getTrustScore",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
+    "name": "getLastGlobalRequestIndexOfAddress",
+    "type": "function",
+    "inputs": [{ "name": "_addr", "type": "address" }],
+    "outputs": [{ "name": "", "type": "int256" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "getKYCLevel",
+    "type": "function",
+    "inputs": [{ "name": "_addr", "type": "address" }],
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "stateMutability": "view"
   }
 ];

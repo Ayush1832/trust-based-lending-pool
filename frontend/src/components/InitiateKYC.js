@@ -1,30 +1,12 @@
 import React from "react";
-import { ethers } from "ethers";
+import { motion } from "framer-motion";
 
-const InitiateKYC = ({ account, setError }) => {
+const InitiateKYC = ({ web3, account, setError }) => {
   const initiate = async () => {
     try {
-      if (!window.ethereum) throw new Error("MetaMask not detected");
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const kycContract = new ethers.Contract(
-        "0xYourKYCContractAddress", // Update with actual address
-        [
-          {
-            "inputs": [
-              { "internalType": "uint256", "name": "level", "type": "uint256" },
-              { "internalType": "bytes", "name": "data", "type": "bytes" }
-            ],
-            "name": "createKYCRequest",
-            "outputs": [],
-            "stateMutability": "payable",
-            "type": "function"
-          }
-        ],
-        signer
-      );
-      const tx = await kycContract.createKYCRequest(1, "0x");
-      await tx.wait();
+      if (!web3) throw new Error("Web3 not initialized");
+      const uuid = `kyc-uuid-${Math.random().toString(36).slice(2)}`;
+      await web3.graphite.createKYCRequest(uuid, 1);
       alert("KYC request initiated");
     } catch (error) {
       setError(error.message);
@@ -32,9 +14,16 @@ const InitiateKYC = ({ account, setError }) => {
   };
 
   return (
-    <button onClick={initiate} className="bg-green-500 text-white p-2 rounded mt-2" disabled={!account}>
+    <motion.button
+      initial={{ scale: 0.9 }}
+      animate={{ scale: 1 }}
+      transition={{ duration: 0.3 }}
+      onClick={initiate}
+      className="bg-neon-green text-dark-bg px-4 py-2 rounded hover:bg-neon-blue transition-colors disabled:opacity-50 mt-4"
+      disabled={!account || !web3}
+    >
       Initiate KYC
-    </button>
+    </motion.button>
   );
 };
 

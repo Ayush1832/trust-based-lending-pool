@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ethers } from "ethers";
 import NavBar from "./components/NavBar";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -8,19 +7,43 @@ import Deposit from "./pages/Deposit";
 import Borrow from "./pages/Borrow";
 import Repay from "./pages/Repay";
 import Withdraw from "./pages/Withdraw";
+import { initWeb3 } from "./utils/web3";
 
 const App = () => {
   const [account, setAccount] = useState(null);
+  const [web3, setWeb3] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const checkConnection = async () => {
-      if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const accounts = await provider.listAccounts();
-        if (accounts.length > 0) {
-          setAccount(accounts[0].address);
+      if (window.graphite) {
+        try {
+          const web3Instance = await initWeb3();
+          setWeb3(web3Instance);
+          const account = await window.graphite.getAddress();
+          if (account) {
+            setAccount(account);
+          }
+        } catch (err) {
+          setError(err.message || "Failed to initialize Web3");
         }
+
+        // Listen for account changes
+        window.graphite.on("accountsChanged", async () => {
+          const newAccount = await window.graphite.getAddress();
+          setAccount(newAccount || null);
+        });
+
+        // Listen for network changes
+        window.graphite.on("chainChanged", () => {
+          window.location.reload();
+        });
+
+        return () => {
+          window.graphite.removeAllListeners();
+        };
+      } else {
+        setError("Please connect to Graphite wallet to continue");
       }
     };
     checkConnection();
@@ -28,10 +51,13 @@ const App = () => {
 
   const connectWallet = async () => {
     try {
-      if (!window.ethereum) throw new Error("MetaMask not detected");
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const accounts = await provider.send("eth_requestAccounts", []);
-      setAccount(accounts[0]);
+      if (!window.graphite) {
+        throw new Error("Graphite Wallet not detected. Install it from https://docs.atgraphite.com/ecosystem/graphite-wallet");
+      }
+      const web3Instance = await initWeb3();
+      setWeb3(web3Instance);
+      const account = await window.graphite.getAddress();
+      setAccount(account);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -40,6 +66,7 @@ const App = () => {
 
   const disconnectWallet = () => {
     setAccount(null);
+    setWeb3(null);
   };
 
   return (
@@ -52,7 +79,12 @@ const App = () => {
       <div className="pt-16">
         <Routes>
           <Route path="/" element={<Home account={account} />} />
-          <Route path="/dashboard" element={<Dashboard account={account} />} />
+          <Route
+            path="/dashboard"
+            element={
+              <Dashboard account={account} web3={web3} setError={setError} />
+            }
+          />
           <Route
             path="/deposit"
             element={<Deposit account={account} setError={setError} />}
