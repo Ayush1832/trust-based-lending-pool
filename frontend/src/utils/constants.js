@@ -1,5 +1,5 @@
-export const LENDING_POOL_ADDRESS = "0xYourDeployedLendingPoolAddress"; // Replace after deployment
-export const USDG_ADDRESS = "0xDcE5E14F2A607C049C8948b05AD561C2Ff46D407"; // From mockUSDGAddress.json
+export const LENDING_POOL_ADDRESS = "0x7F3657f40fd82ca4EC0D6B45699A32E9618b5228"; // Replace after deployment
+export const USDG_ADDRESS = "0x6FB3828B424c04ce7Bb9d64F958942C514D47F30"; // From mockUSDGAddress.json
 export const KYC_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000001001";
 
 export const LENDING_POOL_ABI = [

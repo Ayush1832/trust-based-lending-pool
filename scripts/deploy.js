@@ -5,7 +5,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Deploying contracts with:", deployer.address);
 
-  const usdgAddress = "0xDcE5E14F2A607C049C8948b05AD561C2Ff46D407";
+  const usdgAddress = "0x6FB3828B424c04ce7Bb9d64F958942C514D47F30";
   const kycContractAddress = "0x0000000000000000000000000000000000001001";
 
   const LendingPool = await ethers.getContractFactory("LendingPool");

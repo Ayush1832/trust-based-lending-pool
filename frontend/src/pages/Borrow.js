@@ -1,54 +1,62 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ethers } from "ethers";
+import { getKycLevel } from "../utils/web3";
 import { LENDING_POOL_ADDRESS, LENDING_POOL_ABI } from "../utils/constants";
 
-const Borrow = ({ account, setError }) => {
+const Borrow = ({ account, web3, setError }) => {
   const [amount, setAmount] = useState("");
 
   const borrow = async () => {
+    if (!web3 || !account) {
+      setError("Connect Graphite Wallet first.");
+      return;
+    }
     try {
-      if (!window.graphite) throw new Error("MetaMask not detected");
-      const provider = new ethers.BrowserProvider(window.graphite);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(
-        LENDING_POOL_ADDRESS,
-        LENDING_POOL_ABI,
-        signer
-      );
-      const tx = await contract.borrow(ethers.parseUnits(amount, 18));
-      await tx.wait();
-      alert("Borrow successful");
+      const kycLevel = await getKycLevel(web3);
+      if (kycLevel < 1) {
+        setError("Complete KYC (level 1+) to borrow.");
+        return;
+      }
+      const contract = new web3.eth.Contract(LENDING_POOL_ABI, LENDING_POOL_ADDRESS);
+      await contract.methods
+        .borrow(web3.utils.toWei(amount, "ether"))
+        .send({ from: account });
+      alert("Borrow successful!");
       setAmount("");
     } catch (error) {
-      setError(error.message);
+      setError(`Borrow failed: ${error.message}`);
     }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="p-8 min-h-screen flex justify-center items-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+      className="min-h-screen flex justify-center items-center bg-gradient-to-br from-gray-900 via-blue-900 to-black"
     >
-      <div className="bg-dark-card p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-3xl font-bold text-neon-blue mb-4">Borrow</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-8 shadow-2xl w-full max-w-md"
+      >
+        <h2 className="text-3xl font-extrabold text-white mb-6">Borrow</h2>
         <input
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="bg-dark-bg text-white border border-neon-blue p-2 w-full rounded mb-4"
+          className="bg-gray-800 text-white border border-neon-blue p-3 w-full rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-neon-blue"
           placeholder="Amount (USD@G)"
         />
         <button
           onClick={borrow}
-          className="bg-neon-blue text-white p-2 w-full rounded hover:bg-neon-green transition-colors disabled:opacity-50"
+          className="bg-neon-blue text-white p-3 w-full rounded-lg hover:bg-neon-green transition-colors disabled:opacity-50 text-lg font-semibold"
           disabled={!account || !amount}
         >
           Borrow
         </button>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };

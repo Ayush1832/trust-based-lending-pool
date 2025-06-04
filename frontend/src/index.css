@@ -11,3 +11,29 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.bg-neon-blue {
+  background-color: #00f6ff;
+}
+
+.text-neon-blue {
+  color: #00f6ff;
+}
+
+.border-neon-blue {
+  border-color: #00f6ff;
+}
+
+.bg-neon-green {
+  background-color: #39ff14;
+}
+
+.text-neon-green {
+  color: #39ff14;
+}
